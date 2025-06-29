@@ -85,6 +85,34 @@ class usersController {
 
     login = async (req: Request, res: Response): Promise<any> => {
 
+        try{
+
+            const { email, password } = req.body;
+
+            if (!email || !password) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Missing email or password",
+                    data: null,
+                });
+            }
+
+            const existedUser = await db.$transaction(async (prismadb: any) => {
+                return await prismadb.user.findUnique({
+                    where: {
+                        email: email
+                    },
+                    include: {
+                        refreshToken: true
+                    }
+                });
+            })
+
+
+        }
+        catch (error: any) {
+            return res.status(400).json({ success: false, message: error.message, data: null });
+        }
     }
 }
 
