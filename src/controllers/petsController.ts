@@ -1,4 +1,3 @@
-import JWToken from "../utils/token";
 import { Request, Response } from "express";
 import db from "../utils/db";
 import { Pet_Type, Sex_Type } from "@prisma/client";
@@ -17,11 +16,7 @@ class PetsController {
 
     async createPet(req: Request<{}, {}, PetRegistrationInfo>, res: Response): Promise<any> | never {
         try {
-            const token = req.cookies.token;
-            const user_payload = JWToken.verifyToken(token, process.env.ACCESS_TOKEN_SECRET!);
-            if (!user_payload) {
-                return res.status(401).json({ success: false, message: "Invalid token", data: {} });
-            }
+            const user = (req as any).user;
 
             const pet_registration_data = req.body;
             if (!(pet_registration_data.dateOfBirth && pet_registration_data.name && pet_registration_data.sex && pet_registration_data.type)) {
@@ -31,7 +26,7 @@ class PetsController {
             const newPet = await db.$transaction(async (prisma) => {
                 const existedUser = await prisma.user.findUnique({
                     where: {
-                        email: user_payload.email
+                        email: user.email
                     }
                 }).catch((err) => {
                     console.log(err);
