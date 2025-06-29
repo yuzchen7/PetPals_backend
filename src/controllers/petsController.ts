@@ -116,7 +116,7 @@ class PetsController {
         try {
             const user = (req as any).user;
             const pet_id = req.params.id;
-            
+
             const petDetails = await db.$transaction(async (prisma) => {
                 const existedUser = await prisma.user.findUnique({
                     where: {
@@ -137,10 +137,32 @@ class PetsController {
                         userId: existedUser.id
                     },
                     include: {
-                        healthInfo: true,
-                        pta: true,
-                        event: true
-                    }
+                        healthInfo: {
+                            select: {
+                                size: true,
+                                weight: true,
+                                date: true,
+                            }
+                        },
+                        pta: {
+                            select: {
+                                frequency: true,
+                                activity: true,
+                                date: true,
+                            }
+                        },
+                        event: {
+                            select: {
+                                date: true,
+                                start_time: true,
+                                end_time: true,
+                                type: true,
+                                description: true,
+                                detail: true,
+                                frequency: true,
+                            }
+                        }
+                    },
                 }).catch((err) => {
                     console.log(err);
                     throw new Error("Failed to find pet");
@@ -166,7 +188,16 @@ class PetsController {
 
     async updatePet(req: Request, res: Response) { }
 
-    async deletePet(req: Request, res: Response) { }
+    async deletePet(req: Request, res: Response): Promise<any> | never {
+        try {
+            // const user = (req as any).user;
+            // const pet_id = req.params.id;
+        
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Failed to delete pet", data: {} });
+        }
+    }
 }
 
 export default new PetsController();

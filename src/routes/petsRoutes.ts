@@ -16,6 +16,10 @@ router.post(
 );
 router.put('/update', petsController.updatePet);
 router.delete('/delete', petsController.deletePet);
-router.get('/details/:id', petsController.getPetDetails);
+router.get(
+    '/details/:id',
+    verifyToken,
+    petsController.getPetDetails
+);
 
 export default router;
