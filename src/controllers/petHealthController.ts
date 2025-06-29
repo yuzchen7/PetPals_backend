@@ -7,6 +7,12 @@ type PetHealthRegisterInfo = {
     date: string,
 }
 
+type PetHealthUpdateInfo = {
+    size?: number,
+    weight?: number,
+    date?: string,
+}
+
 class PetHealthController {
     async getPetAllHealth(req: Request, res: Response) {
 
@@ -16,8 +22,65 @@ class PetHealthController {
 
     }
 
-    async updatePetHealth(req: Request, res: Response) {
+    async updatePetHealth(req: Request<{id: string}, {}, PetHealthUpdateInfo>, res: Response): Promise<any> | never {
+        try {
+            const user = (req as any).user;
+            const pet_id = req.params.id;
+            const health_id = req.query.health_id;
 
+            const result = await db.$transaction(async (prisma) => {
+                const updatedHealth = await prisma.pet_Heath_Info.update({
+                    where: {
+                        id: Number(health_id),
+                        petId: Number(pet_id),
+                        pet: {
+                            master: {
+                                email: user.email
+                            }
+                        }
+                    },
+                    data: {
+                        ...(req.body.size && { size: req.body.size }),
+                        ...(req.body.weight && { weight: req.body.weight }),
+                        ...(req.body.date && { date: new Date(req.body.date) }),
+                    },
+                    include: {
+                        pet: true
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to update pet health");
+                });
+
+                if (!updatedHealth) {
+                    throw new Error("Failed to update pet health");
+                }
+
+                return {
+                    status: 'updated',
+                    pet: {
+                        name: updatedHealth.pet.name,
+                        sex: updatedHealth.pet.sex,
+                        type: updatedHealth.pet.type,
+                        dateOfBirth: updatedHealth.pet.dateOfBirth.toISOString()
+                    },
+                    healthInfo: {
+                        size: updatedHealth.size,
+                        weight: updatedHealth.weight,
+                        date: updatedHealth.date.toISOString()
+                    }
+                }
+            });
+
+            if (!result) {
+                return res.status(500).json({ status: false, message: "Pet health Internal Error", data: {} });
+            } else {
+                return res.status(200).json({ status: true, message: "Pet health updated successfully", data: result });
+            }
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({ message: "Internal Server Error" });
+        }
     }
 
     async deletePetHealth(req: Request, res: Response) {
