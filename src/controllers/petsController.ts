@@ -1,4 +1,3 @@
-import JWToken from "../utils/token";
 import { Request, Response } from "express";
 import db from "../utils/db";
 import { Pet_Type, Sex_Type } from "@prisma/client";
@@ -10,18 +9,60 @@ type PetRegistrationInfo = {
     type: Pet_Type;
 }
 
+type PetBasicInfo = {
+    dateOfBirth?: string;
+    name?: string;
+    sex?: Sex_Type;
+    type?: Pet_Type;
+}
+
 class PetsController {
     async getAllPets(req: Request, res: Response): Promise<any> | never {
-        
+        try {
+            const user = (req as any).user;
+
+            const pets = await db.$transaction(async (prisma) => {
+                const existedUser = await prisma.user.findUnique({
+                    where: {
+                        email: user.email
+                    },
+                    include: {
+                        pet: {
+                            select: {
+                                name: true,
+                                sex: true,
+                                type: true,
+                                dateOfBirth: true
+                            }
+                        }
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to find user");
+                });
+
+                if (!existedUser) {
+                    return res.status(404).json({ success: false, message: "User not found", data: {} });
+                }
+
+                return existedUser.pet
+            });
+
+            if (pets) {
+                return res.status(200).json({ success: true, message: "Pets found successfully", data: pets });
+            } else {
+                return res.status(500).json({ success: false, message: "Failed to find pets", data: {} });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Failed to find pets", data: {} });
+        }
     }
 
     async createPet(req: Request<{}, {}, PetRegistrationInfo>, res: Response): Promise<any> | never {
         try {
-            const token = req.cookies.token;
-            const user_payload = JWToken.verifyToken(token, process.env.ACCESS_TOKEN_SECRET!);
-            if (!user_payload) {
-                return res.status(401).json({ success: false, message: "Invalid token", data: {} });
-            }
+            const user = (req as any).user;
 
             const pet_registration_data = req.body;
             if (!(pet_registration_data.dateOfBirth && pet_registration_data.name && pet_registration_data.sex && pet_registration_data.type)) {
@@ -31,7 +72,7 @@ class PetsController {
             const newPet = await db.$transaction(async (prisma) => {
                 const existedUser = await prisma.user.findUnique({
                     where: {
-                        email: user_payload.email
+                        email: user.email
                     }
                 }).catch((err) => {
                     console.log(err);
@@ -44,7 +85,10 @@ class PetsController {
 
                 const newPet = await prisma.pet.create({
                     data: {
-                        ...pet_registration_data,
+                        dateOfBirth: new Date(pet_registration_data.dateOfBirth),
+                        name: pet_registration_data.name,
+                        sex: pet_registration_data.sex,
+                        type: pet_registration_data.type,
                         userId: existedUser.id
                     }
                 }).catch((err) => {
@@ -75,11 +119,181 @@ class PetsController {
         }
     }
 
-    async getPetDetails(req: Request, res: Response) { }
+    async getPetDetails(req: Request, res: Response): Promise<any> | never {
+        try {
+            const user = (req as any).user;
+            const pet_id = req.params.id;
 
-    async updatePet(req: Request, res: Response) { }
+            const petDetails = await db.$transaction(async (prisma) => {
+                const existedUser = await prisma.user.findUnique({
+                    where: {
+                        email: user.email
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to find user");
+                });
 
-    async deletePet(req: Request, res: Response) { }
+                if (!existedUser) {
+                    throw new Error("User not found");
+                }
+
+                const getPetDetails = await prisma.pet.findUnique({
+                    where: {
+                        id: Number(pet_id),
+                        userId: existedUser.id
+                    },
+                    include: {
+                        healthInfo: {
+                            select: {
+                                size: true,
+                                weight: true,
+                                date: true,
+                            }
+                        },
+                        pta: {
+                            select: {
+                                frequency: true,
+                                activity: true,
+                                date: true,
+                            }
+                        },
+                        event: {
+                            select: {
+                                date: true,
+                                start_time: true,
+                                end_time: true,
+                                type: true,
+                                description: true,
+                                detail: true,
+                                frequency: true,
+                            }
+                        }
+                    },
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to find pet");
+                });
+
+                if (!getPetDetails) {
+                    throw new Error("Pet not found");
+                }
+
+                return getPetDetails;
+            });
+
+            if (petDetails) {
+                return res.status(200).json({ success: true, message: "Pet details found successfully", data: petDetails });
+            } else {
+                return res.status(500).json({ success: false, message: "Failed to get pet details", data: {} });
+            }
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Failed to get pet details", data: {} });
+        }
+    }
+
+    async updatePet(req: Request<{id: string}, {}, PetBasicInfo>, res: Response): Promise<any> | never { 
+        try {
+            const user = (req as any).user;
+            const pet_id = req.params.id;
+            const updateData = req.body
+
+            const petUpdated = await db.$transaction(async (prisma) => {
+                const existedUser = await prisma.user.findUnique({
+                    where: {
+                        email: user.email
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to find user");
+                });
+
+                if (!existedUser) {
+                    throw new Error("User not found");
+                }
+
+                const petUpdated = await prisma.pet.update({
+                    where: {
+                        id: Number(pet_id),
+                        userId: existedUser!.id
+                    },
+                    data: {
+                        ...(updateData.name && { name: updateData.name }),
+                        ...(updateData.sex && { sex: updateData.sex }),
+                        ...(updateData.type && { type: updateData.type as Pet_Type }),
+                        ...(updateData.dateOfBirth && { dateOfBirth: new Date(updateData.dateOfBirth) }),
+                    },  
+                    select: {
+                        name: true,
+                        sex: true,
+                        type: true,
+                        dateOfBirth: true
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to update pet");
+                })
+
+                if (!petUpdated) {
+                    throw new Error("Pet not found");
+                }
+
+                return petUpdated;
+            });
+
+            return res.status(200).json({ success: true, message: "Pet updated successfully", data: petUpdated });``
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Failed to update pet", data: {} });
+        }
+    }
+
+    async deletePet(req: Request, res: Response): Promise<any> | never {
+        try {
+            const user = (req as any).user;
+            const pet_id = req.params.id;
+            const deletePet = await db.$transaction(async (prisma) => {
+                const existedUser = await prisma.user.findUnique({
+                    where: {
+                        email: user.email
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to find user");
+                });
+
+                if (!existedUser) {
+                    throw new Error("User not found");
+                }
+
+                const deletePet = await prisma.pet.delete({
+                    where: {
+                        id: Number(pet_id),
+                        userId: existedUser!.id
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to delete pet");
+                });
+
+                if (!deletePet) {
+                    throw new Error("Pet not found");
+                }
+
+                return deletePet;
+            });
+
+            if (deletePet) {
+                return res.status(200).json({ success: true, message: "Pet deleted successfully", data: deletePet });
+            } else {
+                return res.status(500).json({ success: false, message: "Failed to delete pet", data: {} });
+            }
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Failed to delete pet", data: {} });
+        }
+    }
 }
 
 export default new PetsController();
