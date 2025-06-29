@@ -85,6 +85,52 @@ class usersController {
 
     login = async (req: Request, res: Response): Promise<any> => {
 
+        try{
+
+            const { email, password } = req.body;
+
+            if (!email || !password) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Missing email or password",
+                    data: null,
+                });
+            }
+
+            const existedUser = await db.$transaction(async (prismadb: any) => {
+                return await prismadb.user.findUnique({
+                    where: {
+                        email: email
+                    },
+                });
+            })
+            if(!existedUser){
+                return res.status(400).json({ success: false, message: "user not existed", data: null });
+            }
+
+            const access_token = JWToken.getAccessToken({email:existedUser.email})
+            const refresh_token = JWToken.getRefreshToken({email:existedUser.email})
+            await db.$transaction(async (prismadb: any) => {
+                return await prismadb.refreshToken.create({
+                    data:{
+                        userId: existedUser.id,
+                        token: refresh_token
+                    }
+                })
+            })
+
+            res.status(200).cookie("token", access_token, { expires: new Date(Date.now() + 1 * 60 * 60 * 1000), httpOnly: true }).json({
+                success: true,
+                access_token,
+                refresh_token,
+                message: "Login Successfully!",
+                data: null
+            })
+
+        }
+        catch (error: any) {
+            return res.status(400).json({ success: false, message: error.message, data: null });
+        }
     }
 }
 
