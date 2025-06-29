@@ -2,6 +2,73 @@ import { Request, Response } from "express";
 import db from "../utils/db";
 
 class eventsController {
+    /**
+     * @swagger
+     * /api/Reminders:
+     *   get:
+     *     summary: Get all reminders for the authenticated user
+     *     tags: [Reminders]
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: Reminders retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Reminders retrieved successfully"
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       id:
+     *                         type: integer
+     *                         example: 1
+     *                       start_time:
+     *                         type: string
+     *                         example: "09:00"
+     *                       end_time:
+     *                         type: string
+     *                         example: "10:00"
+     *                       description:
+     *                         type: string
+     *                         example: "Morning walk"
+     *                       type:
+     *                         type: string
+     *                         enum: [health_care, walk]
+     *                         example: "walk"
+     *                       frequency:
+     *                         type: integer
+     *                         example: 1
+     *                       pet:
+     *                         type: object
+     *                         properties:
+     *                           name:
+     *                             type: string
+     *                             example: "Buddy"
+     *       400:
+     *         description: Bad request
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: null
+     */
     getAllReminders = async (req: Request, res: Response): Promise<any> => {
         try{
             const userEmail = (req as any).user.email
@@ -44,6 +111,95 @@ class eventsController {
         }
     }
 
+    /**
+     * @swagger
+     * /api/Reminders/pet/{petId}:
+     *   post:
+     *     summary: Add a new reminder for a specific pet
+     *     tags: [Reminders]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: petId
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: The ID of the pet
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - date
+     *               - start_time
+     *               - end_time
+     *               - description
+     *               - type
+     *             properties:
+     *               date:
+     *                 type: string
+     *                 format: date-time
+     *                 example: "2025-06-30T09:00:00Z"
+     *                 description: Date and time for the reminder
+     *               start_time:
+     *                 type: string
+     *                 example: "09:00"
+     *                 description: Start time in HH:MM format
+     *               end_time:
+     *                 type: string
+     *                 example: "10:00"
+     *                 description: End time in HH:MM format
+     *               description:
+     *                 type: string
+     *                 example: "Morning walk in the park"
+     *                 description: Description of the reminder
+     *               type:
+     *                 type: string
+     *                 enum: [health_care, walk]
+     *                 example: "walk"
+     *                 description: Type of reminder/event
+     *               detail:
+     *                 type: string
+     *                 example: "Take the usual route through the park"
+     *                 description: Additional details about the reminder
+     *               frequency:
+     *                 type: integer
+     *                 example: 1
+     *                 description: How often this reminder occurs
+     *     responses:
+     *       201:
+     *         description: Reminder added successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Reminder added successfully"
+     *                 data:
+     *                   type: null
+     *       400:
+     *         description: Bad request - validation error or missing fields
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: null
+     */
     addReminders = async (req: Request, res: Response): Promise<any> => {
 
         try{
@@ -86,6 +242,53 @@ class eventsController {
         }
     }
 
+    /**
+     * @swagger
+     * /api/Reminders/{RemindersId}:
+     *   delete:
+     *     summary: Delete a specific reminder
+     *     tags: [Reminders]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: RemindersId
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: The ID of the event/reminder to delete
+     *     responses:
+     *       200:
+     *         description: Reminder deleted successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Reminder deleted successfully"
+     *                 data:
+     *                   type: null
+     *       400:
+     *         description: Bad request - reminder not found or deletion failed
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Failed to delete reminder"
+     *                 data:
+     *                   type: null
+     */
     deleteReminders = async (req: Request, res: Response): Promise<any> => {
         try{
             const eventId = parseInt(req.params.eventId)
@@ -109,6 +312,90 @@ class eventsController {
         }
     }
 
+    /**
+     * @swagger
+     * /api/Reminders/{RemindersId}:
+     *   put:
+     *     summary: Update a specific reminder
+     *     tags: [Reminders]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: RemindersId
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: The ID of the event/reminder to update
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               date:
+     *                 type: string
+     *                 format: date-time
+     *                 example: "2025-06-30T09:00:00Z"
+     *                 description: Updated date and time for the reminder
+     *               start_time:
+     *                 type: string
+     *                 example: "09:00"
+     *                 description: Updated start time in HH:MM format
+     *               end_time:
+     *                 type: string
+     *                 example: "10:00"
+     *                 description: Updated end time in HH:MM format
+     *               description:
+     *                 type: string
+     *                 example: "Evening walk in the park"
+     *                 description: Updated description of the reminder
+     *               type:
+     *                 type: string
+     *                 enum: [health_care, walk]
+     *                 example: "walk"
+     *                 description: Updated type of reminder/event
+     *               detail:
+     *                 type: string
+     *                 example: "Take the longer route today"
+     *                 description: Updated additional details about the reminder
+     *               frequency:
+     *                 type: integer
+     *                 example: 2
+     *                 description: Updated frequency of this reminder
+     *     responses:
+     *       200:
+     *         description: Reminder updated successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Reminder updated successfully"
+     *                 data:
+     *                   type: null
+     *       400:
+     *         description: Bad request - validation error or update failed
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Failed to update reminder"
+     *                 data:
+     *                   type: null
+     */
     updateReminders = async (req: Request, res: Response): Promise<any> => {
         try{
             const eventId = parseInt(req.params.eventId)
@@ -143,6 +430,87 @@ class eventsController {
         }
     }
 
+    /**
+     * @swagger
+     * /api/Reminders/pet/{petId}:
+     *   get:
+     *     summary: Get all reminders for a specific pet
+     *     tags: [Reminders]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: petId
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: The ID of the pet to get reminders for
+     *     responses:
+     *       200:
+     *         description: Pet reminders retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Reminder details retrieved successfully"
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       id:
+     *                         type: integer
+     *                         example: 1
+     *                       date:
+     *                         type: string
+     *                         format: date-time
+     *                         example: "2025-06-30T09:00:00Z"
+     *                       start_time:
+     *                         type: string
+     *                         example: "09:00"
+     *                       end_time:
+     *                         type: string
+     *                         example: "10:00"
+     *                       description:
+     *                         type: string
+     *                         example: "Morning walk"
+     *                       type:
+     *                         type: string
+     *                         enum: [health_care, walk]
+     *                         example: "walk"
+     *                       detail:
+     *                         type: string
+     *                         example: "Take usual route"
+     *                       frequency:
+     *                         type: integer
+     *                         example: 1
+     *                       petId:
+     *                         type: integer
+     *                         example: 1
+     *                       userId:
+     *                         type: integer
+     *                         example: 1
+     *       400:
+     *         description: Bad request
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: null
+     */
     getRemindersByPet = async (req: Request, res: Response): Promise<any> => {
         try{
             const petId = parseInt(req.params.petId)
@@ -165,6 +533,106 @@ class eventsController {
         }
     }
 
+    /**
+     * @swagger
+     * /api/Reminders/detail/{RemindersId}:
+     *   get:
+     *     summary: Get detailed information of a specific reminder
+     *     tags: [Reminders]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: Reminders
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: The ID of the event/reminder to get details for
+     *     responses:
+     *       200:
+     *         description: Reminder details retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Reminder details retrieved successfully"
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     id:
+     *                       type: integer
+     *                       example: 1
+     *                     date:
+     *                       type: string
+     *                       format: date-time
+     *                       example: "2025-06-30T09:00:00Z"
+     *                     start_time:
+     *                       type: string
+     *                       example: "09:00"
+     *                     end_time:
+     *                       type: string
+     *                       example: "10:00"
+     *                     description:
+     *                       type: string
+     *                       example: "Morning walk"
+     *                     type:
+     *                       type: string
+     *                       enum: [health_care, walk]
+     *                       example: "walk"
+     *                     detail:
+     *                       type: string
+     *                       example: "Take usual route through the park"
+     *                     frequency:
+     *                       type: integer
+     *                       example: 1
+     *                     petId:
+     *                       type: integer
+     *                       example: 1
+     *                     userId:
+     *                       type: integer
+     *                       example: 1
+     *                     pet:
+     *                       type: object
+     *                       properties:
+     *                         name:
+     *                           type: string
+     *                           example: "Buddy"
+     *       404:
+     *         description: Reminder not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Reminder not found"
+     *                 data:
+     *                   type: null
+     *       400:
+     *         description: Bad request
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: null
+     */
     getReminderDetail = async (req: Request, res: Response): Promise<any> => {
         try{
             const eventId = parseInt(req.params.eventId)
