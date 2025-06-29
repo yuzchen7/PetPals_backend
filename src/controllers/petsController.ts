@@ -44,7 +44,10 @@ class PetsController {
 
                 const newPet = await prisma.pet.create({
                     data: {
-                        ...pet_registration_data,
+                        dateOfBirth: new Date(pet_registration_data.dateOfBirth),
+                        name: pet_registration_data.name,
+                        sex: pet_registration_data.sex,
+                        type: pet_registration_data.type,
                         userId: existedUser.id
                     }
                 }).catch((err) => {
