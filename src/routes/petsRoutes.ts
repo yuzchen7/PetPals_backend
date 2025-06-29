@@ -1,8 +1,36 @@
 import express from 'express';
 const router = express.Router();
-const petsController = require('../controllers/petsController');
+import { verifyToken } from '../middleware/authMiddleware';
+import petsController from '../controllers/petsController';
 
-router.get('/', petsController.getAllPets);
-router.get('/details', petsController.petDetail);
+router.get(
+    '/', 
+    verifyToken,
+    petsController.getAllPets
+);
+
+router.post(
+    '/create', 
+    verifyToken,
+    petsController.createPet
+);
+
+router.put(
+    '/update/:id', 
+    verifyToken,
+    petsController.updatePet
+);
+
+router.delete(
+    '/delete/:id', 
+    verifyToken,
+    petsController.deletePet
+);
+
+router.get(
+    '/details/:id',
+    verifyToken,
+    petsController.getPetDetails
+);
 
 export default router;

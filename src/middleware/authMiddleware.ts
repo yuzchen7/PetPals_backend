@@ -21,4 +21,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) =>{
     }
 }
 
-export {verifyToken}
+
+export {
+    verifyToken
+}

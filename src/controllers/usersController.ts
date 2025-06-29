@@ -111,11 +111,15 @@ class usersController {
             const access_token = JWToken.getAccessToken({email:existedUser.email})
             const refresh_token = JWToken.getRefreshToken({email:existedUser.email})
             await db.$transaction(async (prismadb: any) => {
-                return await prismadb.refreshToken.update({
+                return await prismadb.refreshToken.upsert({
                     where:{
                         userId: existedUser.id,
                     },
-                    data:{
+                    update:{
+                        token: refresh_token
+                    },
+                    create:{
+                        userId: existedUser.id,
                         token: refresh_token
                     }
                 })
