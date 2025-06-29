@@ -112,7 +112,57 @@ class PetsController {
         }
     }
 
-    async getPetDetails(req: Request, res: Response) { }
+    async getPetDetails(req: Request, res: Response): Promise<any> | never {
+        try {
+            const user = (req as any).user;
+            const pet_id = req.params.id;
+            
+            const petDetails = await db.$transaction(async (prisma) => {
+                const existedUser = await prisma.user.findUnique({
+                    where: {
+                        email: user.email
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to find user");
+                });
+
+                if (!existedUser) {
+                    throw new Error("User not found");
+                }
+
+                const getPetDetails = await prisma.pet.findUnique({
+                    where: {
+                        id: Number(pet_id),
+                        userId: existedUser.id
+                    },
+                    include: {
+                        healthInfo: true,
+                        pta: true,
+                        event: true
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to find pet");
+                });
+
+                if (!getPetDetails) {
+                    throw new Error("Pet not found");
+                }
+
+                return getPetDetails;
+            });
+
+            if (petDetails) {
+                return res.status(200).json({ success: true, message: "Pet details found successfully", data: petDetails });
+            } else {
+                return res.status(500).json({ success: false, message: "Failed to get pet details", data: {} });
+            }
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Failed to get pet details", data: {} });
+        }
+    }
 
     async updatePet(req: Request, res: Response) { }
 

@@ -71,6 +71,7 @@ model Pet_to_Activity {
   petId         Int
   activity      Pet_Activity
   frequency     Int
+  date          DateTime
 }
 
 enum Pet_Activity {
@@ -83,7 +84,7 @@ enum Pet_Activity {
 
 model Pet_Heath_Info {
   id            Int       @id @default(autoincrement())
-  petId         Int       @unique
+  petId         Int       
   pet           Pet       @relation(fields: [petId], references: [id])
   size          Decimal
   weight        Decimal
