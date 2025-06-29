@@ -14,8 +14,70 @@ type PetHealthUpdateInfo = {
 }
 
 class PetHealthController {
-    async getPetAllHealth(req: Request, res: Response) {
+    async getPetAllHealth(req: Request<{id: string}>, res: Response): Promise<any> | never {
+        try {
+            const user = (req as any).user;
+            const result = await db.$transaction(async (prisma) => {
+                const petHealth = await prisma.pet_Heath_Info.findMany({
+                    where: {
+                        pet: {
+                            master: {
+                                email: user.email
+                            }
+                        }
+                    },
+                    include: {
+                        pet: {
+                            include: {
+                                master: true
+                            }
+                        }
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to get pet health");
+                });
 
+                if (!petHealth) {
+                    throw new Error("Failed to get pet health");
+                }
+
+                return petHealth;
+            });
+
+            const groupedPetsMap: Record<number, any> = {};
+
+            result.forEach((health) => {
+                const key = health.pet.id;
+
+                if (!groupedPetsMap[key]) {
+                    groupedPetsMap[key] = {
+                        name: health.pet.name,
+                        sex: health.pet.sex,
+                        type: health.pet.type,
+                        dateOfBirth: health.pet.dateOfBirth.toISOString(),
+                        healthInfo: [],
+                    };
+                }
+
+                groupedPetsMap[key].healthInfo.push({
+                    size: health.size,
+                    weight: health.weight,
+                    date: health.date.toISOString(),
+                });
+            });
+
+            const groupedPets = Object.values(groupedPetsMap);
+
+            if (!result) {
+                res.status(500).json({ status: false, message: "Pet health Internal Error", data: {} });
+            } else {
+                res.status(200).json({ status: true, message: "Pet health retrieved successfully", data: groupedPets });
+            }
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({ message: "Internal Server Error" });
+        }
     }
 
     async getPetHealth(req: Request, res: Response): Promise<any> | never {
