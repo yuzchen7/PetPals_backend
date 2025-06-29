@@ -40,6 +40,10 @@ const options = {
         name: 'Pets',
         description: 'Pet management endpoints',
       },
+      {
+        name: 'pet Health',
+        description: 'Pet health and wellness endpoints',
+      },
     ],
   },
   apis: [
