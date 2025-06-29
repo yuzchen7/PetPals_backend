@@ -190,9 +190,44 @@ class PetsController {
 
     async deletePet(req: Request, res: Response): Promise<any> | never {
         try {
-            // const user = (req as any).user;
-            // const pet_id = req.params.id;
-        
+            const user = (req as any).user;
+            const pet_id = req.params.id;
+            const deletePet = await db.$transaction(async (prisma) => {
+                const existedUser = await prisma.user.findUnique({
+                    where: {
+                        email: user.email
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to find user");
+                });
+
+                if (!existedUser) {
+                    throw new Error("User not found");
+                }
+
+                const deletePet = await prisma.pet.delete({
+                    where: {
+                        id: Number(pet_id),
+                        userId: existedUser!.id
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to delete pet");
+                });
+
+                if (!deletePet) {
+                    throw new Error("Pet not found");
+                }
+
+                return deletePet;
+            });
+
+            if (deletePet) {
+                return res.status(200).json({ success: true, message: "Pet deleted successfully", data: deletePet });
+            } else {
+                return res.status(500).json({ success: false, message: "Failed to delete pet", data: {} });
+            }
         } catch (error) {
             console.log(error);
             return res.status(500).json({ success: false, message: "Failed to delete pet", data: {} });

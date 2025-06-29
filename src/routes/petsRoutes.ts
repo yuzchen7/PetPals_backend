@@ -15,7 +15,13 @@ router.post(
     petsController.createPet
 );
 router.put('/update', petsController.updatePet);
-router.delete('/delete', petsController.deletePet);
+
+router.delete(
+    '/delete/:id', 
+    verifyToken,
+    petsController.deletePet
+);
+
 router.get(
     '/details/:id',
     verifyToken,
