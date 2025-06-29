@@ -48,7 +48,7 @@ enum Pet_Type {
 
 model Event {
   id            Int       @id @default(autoincrement())
-  pet           Pet       @relation(fields: [petId], references: [id])
+  pet           Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
   petId         Int
   date          DateTime
   start_time    String
@@ -67,7 +67,7 @@ enum Event_Type {
 
 model Pet_to_Activity {
   id            Int       @id @default(autoincrement())
-  pet           Pet       @relation(fields: [petId], references: [id])
+  pet           Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
   petId         Int
   activity      Pet_Activity
   frequency     Int
@@ -85,7 +85,7 @@ enum Pet_Activity {
 model Pet_Heath_Info {
   id            Int       @id @default(autoincrement())
   petId         Int       
-  pet           Pet       @relation(fields: [petId], references: [id])
+  pet           Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
   size          Decimal
   weight        Decimal
   date          DateTime
