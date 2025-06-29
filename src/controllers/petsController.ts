@@ -11,7 +11,46 @@ type PetRegistrationInfo = {
 
 class PetsController {
     async getAllPets(req: Request, res: Response): Promise<any> | never {
-        
+        try {
+            const user = (req as any).user;
+
+            const pets = await db.$transaction(async (prisma) => {
+                const existedUser = await prisma.user.findUnique({
+                    where: {
+                        email: user.email
+                    },
+                    include: {
+                        pet: {
+                            select: {
+                                name: true,
+                                sex: true,
+                                type: true,
+                                dateOfBirth: true
+                            }
+                        }
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to find user");
+                });
+
+                if (!existedUser) {
+                    return res.status(404).json({ success: false, message: "User not found", data: {} });
+                }
+
+                return existedUser.pet
+            });
+
+            if (pets) {
+                return res.status(200).json({ success: true, message: "Pets found successfully", data: pets });
+            } else {
+                return res.status(500).json({ success: false, message: "Failed to find pets", data: {} });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Failed to find pets", data: {} });
+        }
     }
 
     async createPet(req: Request<{}, {}, PetRegistrationInfo>, res: Response): Promise<any> | never {

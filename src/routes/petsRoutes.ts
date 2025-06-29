@@ -3,7 +3,12 @@ const router = express.Router();
 import { verifyToken } from '../middleware/authMiddleware';
 import petsController from '../controllers/petsController';
 
-router.get('/', petsController.getAllPets);
+router.get(
+    '/', 
+    verifyToken,
+    petsController.getAllPets
+);
+
 router.post(
     '/create', 
     verifyToken,
