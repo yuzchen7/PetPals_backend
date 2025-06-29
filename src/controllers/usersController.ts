@@ -1,4 +1,4 @@
-import { Request, Response } from "express"; ``
+import { Request, Response } from "express";
 import db from "../utils/db";
 import JWToken from "../utils/token"
 import PasswordTools from "../utils/hashPassword"
@@ -111,9 +111,11 @@ class usersController {
             const access_token = JWToken.getAccessToken({email:existedUser.email})
             const refresh_token = JWToken.getRefreshToken({email:existedUser.email})
             await db.$transaction(async (prismadb: any) => {
-                return await prismadb.refreshToken.create({
-                    data:{
+                return await prismadb.refreshToken.update({
+                    where:{
                         userId: existedUser.id,
+                    },
+                    data:{
                         token: refresh_token
                     }
                 })

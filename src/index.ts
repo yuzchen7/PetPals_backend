@@ -5,11 +5,13 @@ const app = express();
 const PORT = 3000;
 import petsRoutes from './routes/petsRoutes';
 import usersRoutes from './routes/usersRoutes';
+var cookieParser = require('cookie-parser');
 
 config();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from PetPals backend!');
