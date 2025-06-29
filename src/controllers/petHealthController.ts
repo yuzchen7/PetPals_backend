@@ -18,9 +18,63 @@ class PetHealthController {
 
     }
 
-    async getPetHealth(req: Request, res: Response) {
+    async getPetHealth(req: Request, res: Response): Promise<any> | never {
         try {
+            const user = (req as any).user;
+            const pet_id = req.params.id;
+            const result = await db.$transaction(async (prisma) => {
+                const petHealth = await prisma.pet_Heath_Info.findMany({
+                    where: {
+                        petId: Number(pet_id),
+                        pet: {
+                            master: {
+                                email: user.email
+                            }
+                        }
+                    },
+                    include: {
+                        pet: {
+                            select: {
+                                name: true,
+                                sex: true,
+                                type: true,
+                                dateOfBirth: true
+                            }
+                        }
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to get pet health");
+                });
 
+                if (!petHealth) {
+                    throw new Error("Failed to get pet health");
+                }
+
+                const resultArray = petHealth.map((health) => {
+                    return {
+                        size: health.size,
+                        weight: health.weight,
+                        date: health.date.toISOString(),
+                    }
+                })
+
+                return {
+                    pet: {
+                        name: petHealth[0].pet.name,
+                        sex: petHealth[0].pet.sex,
+                        type: petHealth[0].pet.type,
+                        dateOfBirth: petHealth[0].pet.dateOfBirth.toISOString()
+                    },
+                    healthInfo: resultArray
+                }
+            });
+
+            if (!result) {
+                return res.status(500).json({ status: false, message: "Pet health Internal Error", data: {} });
+            } else {
+                return res.status(200).json({ status: true, message: "Pet health retrieved successfully", data: result });
+            }
         } catch (err) {
             console.log(err);
             res.status(500).json({ message: "Internal Server Error" });
