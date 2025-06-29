@@ -19,7 +19,12 @@ class PetHealthController {
     }
 
     async getPetHealth(req: Request, res: Response) {
+        try {
 
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({ message: "Internal Server Error" });
+        }
     }
 
     async updatePetHealth(req: Request<{id: string}, {}, PetHealthUpdateInfo>, res: Response): Promise<any> | never {
@@ -83,7 +88,7 @@ class PetHealthController {
         }
     }
 
-    async deletePetHealth(req: Request, res: Response) {
+    async deletePetHealth(req: Request, res: Response): Promise<any> | never {
         try {
             const user = (req as any).user;
             const pet_id = req.params.id;
@@ -133,9 +138,9 @@ class PetHealthController {
             });
 
             if (!result) {
-                res.status(500).json({ status: false, message: "Pet health fail to Internal Server Error", data: {} });
+                return res.status(500).json({ status: false, message: "Pet health fail to Internal Server Error", data: {} });
             } else {
-                res.status(200).json({ status: true, message: "Pet health deleted successfully", data: result });
+                return res.status(200).json({ status: true, message: "Pet health deleted successfully", data: result });
             }
         } catch (err) {
             console.log(err);
