@@ -133,7 +133,7 @@ class PetHealthController {
             });
 
             if (!result) {
-                res.status(404).json({ status: false, message: "Pet health not found", data: {} });
+                res.status(500).json({ status: false, message: "Pet health fail to Internal Server Error", data: {} });
             } else {
                 res.status(200).json({ status: true, message: "Pet health deleted successfully", data: result });
             }
@@ -203,7 +203,7 @@ class PetHealthController {
             });
 
             if (!newHealth) {
-                return res.status(400).json({status: false,  message: "Failed to create pet health", data: {}});
+                return res.status(500).json({status: false,  message: "Failed to Internal Server Error", data: {}});
             } else {
                 return res.status(201).json({status: true,  message: "Pet health created successfully", data: newHealth});
             }
