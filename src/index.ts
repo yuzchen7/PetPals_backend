@@ -6,6 +6,7 @@ const app = express();
 const PORT = 3000;
 var cookieParser = require('cookie-parser');
 import swaggerUi from 'swagger-ui-express';
+import notifier from './services/notifier';
 const swaggerSpec = require('./swagger');
 
 config();
@@ -23,4 +24,5 @@ app.get('/', (req: Request, res: Response) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  notifier.startNotifier();
 });
