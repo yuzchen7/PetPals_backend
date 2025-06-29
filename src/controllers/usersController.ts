@@ -102,12 +102,30 @@ class usersController {
                     where: {
                         email: email
                     },
-                    include: {
-                        refreshToken: true
-                    }
                 });
             })
+            if(!existedUser){
+                return res.status(400).json({ success: false, message: "user not existed", data: null });
+            }
 
+            const access_token = JWToken.getAccessToken({email:existedUser.email})
+            const refresh_token = JWToken.getRefreshToken({email:existedUser.email})
+            await db.$transaction(async (prismadb: any) => {
+                return await prismadb.refreshToken.create({
+                    data:{
+                        userId: existedUser.id,
+                        token: refresh_token
+                    }
+                })
+            })
+
+            res.status(200).cookie("token", access_token, { expires: new Date(Date.now() + 1 * 60 * 60 * 1000), httpOnly: true }).json({
+                success: true,
+                access_token,
+                refresh_token,
+                message: "Login Successfully!",
+                data: null
+            })
 
         }
         catch (error: any) {
