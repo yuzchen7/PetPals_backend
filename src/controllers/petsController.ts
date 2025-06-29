@@ -17,6 +17,79 @@ type PetBasicInfo = {
 }
 
 class PetsController {
+    /**
+     * @swagger
+     * /api/pets:
+     *   get:
+     *     summary: Get all pets owned by the authenticated user
+     *     tags: [Pets]
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: Pets retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Pets found successfully"
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       name:
+     *                         type: string
+     *                         example: "Buddy"
+     *                       sex:
+     *                         type: string
+     *                         enum: [M, F]
+     *                         example: "M"
+     *                       type:
+     *                         type: string
+     *                         enum: [Cat, Dog]
+     *                         example: "Dog"
+     *                       dateOfBirth:
+     *                         type: string
+     *                         format: date-time
+     *                         example: "2022-01-15T00:00:00Z"
+     *       404:
+     *         description: User not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "User not found"
+     *                 data:
+     *                   type: object
+     *       500:
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Failed to find pets"
+     *                 data:
+     *                   type: object
+     */
     async getAllPets(req: Request, res: Response): Promise<any> | never {
         try {
             const user = (req as any).user;
@@ -60,6 +133,123 @@ class PetsController {
         }
     }
 
+    /**
+     * @swagger
+     * /api/pets/create:
+     *   post:
+     *     summary: Create a new pet for the authenticated user
+     *     tags: [Pets]
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - dateOfBirth
+     *               - name
+     *               - sex
+     *               - type
+     *             properties:
+     *               dateOfBirth:
+     *                 type: string
+     *                 format: date
+     *                 example: "2022-01-15"
+     *                 description: Pet's date of birth (YYYY-MM-DD format)
+     *               name:
+     *                 type: string
+     *                 example: "Buddy"
+     *                 description: Pet's name
+     *               sex:
+     *                 type: string
+     *                 enum: [M, F]
+     *                 example: "M"
+     *                 description: Pet's sex (M for Male, F for Female)
+     *               type:
+     *                 type: string
+     *                 enum: [Cat, Dog]
+     *                 example: "Dog"
+     *                 description: Pet's type
+     *     responses:
+     *       201:
+     *         description: Pet created successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Pet created successfully"
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     name:
+     *                       type: string
+     *                       example: "Buddy"
+     *                     sex:
+     *                       type: string
+     *                       enum: [M, F]
+     *                       example: "M"
+     *                     type:
+     *                       type: string
+     *                       enum: [Cat, Dog]
+     *                       example: "Dog"
+     *                     dateOfBirth:
+     *                       type: string
+     *                       format: date-time
+     *                       example: "2022-01-15T00:00:00Z"
+     *       400:
+     *         description: Invalid pet registration data
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Invalid pet registration data"
+     *                 data:
+     *                   type: object
+     *       404:
+     *         description: User not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "User not found"
+     *                 data:
+     *                   type: object
+     *       500:
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Failed to create pet"
+     *                 data:
+     *                   type: object
+     */
     async createPet(req: Request<{}, {}, PetRegistrationInfo>, res: Response): Promise<any> | never {
         try {
             const user = (req as any).user;
@@ -119,6 +309,134 @@ class PetsController {
         }
     }
 
+    /**
+     * @swagger
+     * /api/pets/details/{id}:
+     *   get:
+     *     summary: Get detailed information about a specific pet
+     *     tags: [Pets]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: The ID of the pet to get details for
+     *     responses:
+     *       200:
+     *         description: Pet details retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Pet details found successfully"
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     id:
+     *                       type: integer
+     *                       example: 1
+     *                     name:
+     *                       type: string
+     *                       example: "Buddy"
+     *                     sex:
+     *                       type: string
+     *                       enum: [M, F]
+     *                       example: "M"
+     *                     type:
+     *                       type: string
+     *                       enum: [Cat, Dog]
+     *                       example: "Dog"
+     *                     dateOfBirth:
+     *                       type: string
+     *                       format: date-time
+     *                       example: "2022-01-15T00:00:00Z"
+     *                     userId:
+     *                       type: integer
+     *                       example: 1
+     *                     healthInfo:
+     *                       type: array
+     *                       items:
+     *                         type: object
+     *                         properties:
+     *                           size:
+     *                             type: string
+     *                             example: "Medium"
+     *                           weight:
+     *                             type: number
+     *                             example: 25.5
+     *                           date:
+     *                             type: string
+     *                             format: date-time
+     *                             example: "2025-06-30T10:00:00Z"
+     *                     pta:
+     *                       type: array
+     *                       items:
+     *                         type: object
+     *                         properties:
+     *                           frequency:
+     *                             type: integer
+     *                             example: 1
+     *                           activity:
+     *                             type: string
+     *                             enum: [walking, feeding, potty, playtime, daycare]
+     *                             example: "walking"
+     *                           date:
+     *                             type: string
+     *                             format: date-time
+     *                             example: "2025-06-30T10:00:00Z"
+     *                     event:
+     *                       type: array
+     *                       items:
+     *                         type: object
+     *                         properties:
+     *                           date:
+     *                             type: string
+     *                             format: date-time
+     *                             example: "2025-06-30T10:00:00Z"
+     *                           start_time:
+     *                             type: string
+     *                             example: "09:00"
+     *                           end_time:
+     *                             type: string
+     *                             example: "10:00"
+     *                           type:
+     *                             type: string
+     *                             enum: [health_care, walk]
+     *                             example: "walk"
+     *                           description:
+     *                             type: string
+     *                             example: "Morning walk"
+     *                           detail:
+     *                             type: string
+     *                             example: "Take usual route"
+     *                           frequency:
+     *                             type: integer
+     *                             example: 1
+     *       500:
+     *         description: Server error - User not found, Pet not found, or Failed to get pet details
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Failed to get pet details"
+     *                 data:
+     *                   type: object
+     */
     async getPetDetails(req: Request, res: Response): Promise<any> | never {
         try {
             const user = (req as any).user;
@@ -193,6 +511,96 @@ class PetsController {
         }
     }
 
+    /**
+     * @swagger
+     * /api/pets/update/{id}:
+     *   put:
+     *     summary: Update a specific pet's information
+     *     tags: [Pets]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: The ID of the pet to update
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               dateOfBirth:
+     *                 type: string
+     *                 format: date
+     *                 example: "2022-01-15"
+     *                 description: Updated pet's date of birth (YYYY-MM-DD format)
+     *               name:
+     *                 type: string
+     *                 example: "Buddy Jr."
+     *                 description: Updated pet's name
+     *               sex:
+     *                 type: string
+     *                 enum: [M, F]
+     *                 example: "F"
+     *                 description: Updated pet's sex (M for Male, F for Female)
+     *               type:
+     *                 type: string
+     *                 enum: [Cat, Dog]
+     *                 example: "Cat"
+     *                 description: Updated pet's type
+     *             description: All fields are optional for partial updates
+     *     responses:
+     *       200:
+     *         description: Pet updated successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Pet updated successfully"
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     name:
+     *                       type: string
+     *                       example: "Buddy Jr."
+     *                     sex:
+     *                       type: string
+     *                       enum: [M, F]
+     *                       example: "F"
+     *                     type:
+     *                       type: string
+     *                       enum: [Cat, Dog]
+     *                       example: "Cat"
+     *                     dateOfBirth:
+     *                       type: string
+     *                       format: date-time
+     *                       example: "2022-01-15T00:00:00Z"
+     *       500:
+     *         description: Server error - User not found, Pet not found, or Failed to update pet
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Failed to update pet"
+     *                 data:
+     *                   type: object
+     */
     async updatePet(req: Request<{id: string}, {}, PetBasicInfo>, res: Response): Promise<any> | never { 
         try {
             const user = (req as any).user;
@@ -249,6 +657,82 @@ class PetsController {
         }
     }
 
+    /**
+     * @swagger
+     * /api/pets/delete/{id}:
+     *   delete:
+     *     summary: Delete a specific pet and all associated data
+     *     tags: [Pets]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: The ID of the pet to delete
+     *     responses:
+     *       200:
+     *         description: Pet deleted successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Pet deleted successfully"
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     id:
+     *                       type: integer
+     *                       example: 1
+     *                     name:
+     *                       type: string
+     *                       example: "Buddy"
+     *                     sex:
+     *                       type: string
+     *                       enum: [M, F]
+     *                       example: "M"
+     *                     type:
+     *                       type: string
+     *                       enum: [Cat, Dog]
+     *                       example: "Dog"
+     *                     dateOfBirth:
+     *                       type: string
+     *                       format: date-time
+     *                       example: "2022-01-15T00:00:00Z"
+     *                     userId:
+     *                       type: integer
+     *                       example: 1
+     *       500:
+     *         description: Server error - User not found, Pet not found, or Failed to delete pet
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Failed to delete pet"
+     *                 data:
+     *                   type: object
+     *     description: |
+     *       **Warning**: This operation will permanently delete the pet and all associated data including:
+     *       - Health information records
+     *       - Activity logs (pta records)
+     *       - Event/reminder records
+     *       
+     *       This action cannot be undone.
+     */
     async deletePet(req: Request, res: Response): Promise<any> | never {
         try {
             const user = (req as any).user;
