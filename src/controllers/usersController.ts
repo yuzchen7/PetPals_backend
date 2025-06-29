@@ -10,11 +10,15 @@ class usersController {
             if (!email || !password) {
                 return res.status(400).json({ success: false, message: "Missing email or password", data: null });
             }
+
             const existedUser = await db.user.findUnique({
                 where: {
                     email: email,
                 },
-            });
+            }).catch ((error: any) => {
+                console.log(error);
+                throw error;
+            })
 
             if (existedUser) {
                 return res.status(400).json({ success: false, message: "User already exists", data: null });
