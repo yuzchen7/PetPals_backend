@@ -9,7 +9,8 @@ datasource db {
 
 model User {
   id                Int      @id @default(autoincrement())
-  pet               Pet[] 
+  pet               Pet[]
+  remainder         Event[]  
   email             String   @unique
   password          String
   refreshTokenId    RefreshToken?
@@ -49,6 +50,8 @@ enum Pet_Type {
 model Event {
   id            Int       @id @default(autoincrement())
   pet           Pet       @relation(fields: [petId], references: [id])
+  owner         User      @relation(fields: [userId], references: [id])
+  userId        Int
   petId         Int
   date          DateTime
   start_time    String

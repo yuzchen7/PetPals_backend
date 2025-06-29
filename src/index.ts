@@ -6,6 +6,7 @@ const PORT = 3000;
 import petsRoutes from './routes/petsRoutes';
 import usersRoutes from './routes/usersRoutes';
 var cookieParser = require('cookie-parser');
+import eventsRoutes from './routes/eventsRoutes'
 
 config();
 
@@ -18,6 +19,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 app.use('/api/pets', petsRoutes);
 app.use('/api/user', usersRoutes)
+app.use('/api/reminders', eventsRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
