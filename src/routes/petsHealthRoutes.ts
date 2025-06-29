@@ -10,7 +10,7 @@ router.get(
 );
 
 router.get(
-    '/:id', 
+    '/pet/:id', 
     verifyToken,
     getPetsHealth.getPetHealth
 );
