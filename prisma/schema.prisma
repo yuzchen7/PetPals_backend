@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                Int      @id @default(autoincrement())
+  pet               Pet[] 
+  email             String   @unique
+  password          String
+  refreshTokenId    RefreshToken?
+  salt              String
+}
+
+model RefreshToken {
+  id                Int      @id @default(autoincrement())
+  user              User     @relation(fields: [userId], references: [id])
+  userId            Int      @unique
+  token             String   @unique
+}
+
+model Pet {
+  id            Int       @id @default(autoincrement())
+  master        User      @relation(fields: [userId], references: [id])
+  userId        Int
+  dateOfBirth   DateTime  
+  name          String
+  sex           Sex_Type
+  type          Pet_Type
+  event         Event[]
+  pta           Pet_to_Activity[]
+  healthInfo    Pet_Heath_Info[]
+}
+
+enum Sex_Type {
+  M
+  F
+}
+
+enum Pet_Type {
+  Cat
+  Dog
+}
+
+model Event {
+  id            Int       @id @default(autoincrement())
+  pet           Pet       @relation(fields: [petId], references: [id])
+  petId         Int
+  date          DateTime
+  start_time    String
+  end_time      String
+  type          Event_Type
+  description   String
+  detail        String?
+  frequency     Int?
+}
+
+enum Event_Type {
+  health_care
+  walk
+  feed
+}
+
+model Pet_to_Activity {
+  id            Int       @id @default(autoincrement())
+  pet           Pet       @relation(fields: [petId], references: [id])
+  petId         Int
+  activity      Pet_Activity
+  frequency     Int
+}
+
+enum Pet_Activity {
+  walking
+  feeding
+  potty
+  playtime
+  daycare
+}
+
+model Pet_Heath_Info {
+  id            Int       @id @default(autoincrement())
+  petId         Int       @unique
+  pet           Pet       @relation(fields: [petId], references: [id])
+  size          Decimal
+  weight        Decimal
+  date          DateTime
+}
