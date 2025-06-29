@@ -9,6 +9,13 @@ type PetRegistrationInfo = {
     type: Pet_Type;
 }
 
+type PetBasicInfo = {
+    dateOfBirth?: string;
+    name?: string;
+    sex?: Sex_Type;
+    type?: Pet_Type;
+}
+
 class PetsController {
     async getAllPets(req: Request, res: Response): Promise<any> | never {
         try {
@@ -186,7 +193,61 @@ class PetsController {
         }
     }
 
-    async updatePet(req: Request, res: Response) { }
+    async updatePet(req: Request<{id: string}, {}, PetBasicInfo>, res: Response): Promise<any> | never { 
+        try {
+            const user = (req as any).user;
+            const pet_id = req.params.id;
+            const updateData = req.body
+
+            const petUpdated = await db.$transaction(async (prisma) => {
+                const existedUser = await prisma.user.findUnique({
+                    where: {
+                        email: user.email
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to find user");
+                });
+
+                if (!existedUser) {
+                    throw new Error("User not found");
+                }
+
+                const petUpdated = await prisma.pet.update({
+                    where: {
+                        id: Number(pet_id),
+                        userId: existedUser!.id
+                    },
+                    data: {
+                        ...(updateData.name && { name: updateData.name }),
+                        ...(updateData.sex && { sex: updateData.sex }),
+                        ...(updateData.type && { type: updateData.type as Pet_Type }),
+                        ...(updateData.dateOfBirth && { dateOfBirth: new Date(updateData.dateOfBirth) }),
+                    },  
+                    select: {
+                        name: true,
+                        sex: true,
+                        type: true,
+                        dateOfBirth: true
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to update pet");
+                })
+
+                if (!petUpdated) {
+                    throw new Error("Pet not found");
+                }
+
+                return petUpdated;
+            });
+
+            return res.status(200).json({ success: true, message: "Pet updated successfully", data: petUpdated });``
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Failed to update pet", data: {} });
+        }
+    }
 
     async deletePet(req: Request, res: Response): Promise<any> | never {
         try {
