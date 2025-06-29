@@ -21,7 +21,63 @@ class PetHealthController {
     }
 
     async deletePetHealth(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const pet_id = req.params.id;
+            const health_id = req.query.health_id;
 
+            const result = await db.$transaction(async (prisma) => {
+                const deleted = await prisma.pet_Heath_Info.delete({
+                    where: {
+                        id: Number(health_id),
+                        petId: Number(pet_id),
+                        pet: {
+                            master: {
+                                email: user.email
+                            }
+                        }
+                    },
+                    include: {
+                        pet: {
+                            include: {
+                                master: true
+                            }
+                        }
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Failed to delete pet health");
+                });
+
+                if (!deleted) {
+                    throw new Error("Failed to delete pet health");
+                }
+
+                return {
+                    status: 'deleted',
+                    pet: {
+                        name: deleted.pet.name,
+                        sex: deleted.pet.sex,
+                        type: deleted.pet.type,
+                        dateOfBirth: deleted.pet.dateOfBirth
+                    },
+                    healthInfo: {
+                        size: deleted.size,
+                        weight: deleted.weight,
+                        date: deleted.date.toISOString()
+                    }
+                }
+            });
+
+            if (!result) {
+                res.status(404).json({ status: false, message: "Pet health not found", data: {} });
+            } else {
+                res.status(200).json({ status: true, message: "Pet health deleted successfully", data: result });
+            }
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({ message: "Internal Server Error" });
+        }
     }
 
     async createPetHealth(req: Request<{id: string}, {}, PetHealthRegisterInfo>, res: Response): Promise<any> | never {
