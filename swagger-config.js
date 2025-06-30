@@ -10,7 +10,7 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
+        url: 'https://petpals-backend-5v3f.onrender.com',
         description: 'Development server',
       },
     ],
