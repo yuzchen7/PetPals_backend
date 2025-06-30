@@ -11,7 +11,12 @@ const options = {
     servers: [
       {
         url: 'http://localhost:3000',
+        description: 'Development server',
       },
+      {
+        url: 'https://petpals-backend-5v3f.onrender.com',
+        description: 'Production server',
+      }
     ],
     components: {
       securitySchemes: {
